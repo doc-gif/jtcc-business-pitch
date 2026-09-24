@@ -1,0 +1,68 @@
+name: ピッチ修正の提案
+description: Figmaまたは公開ページの変更案をチームで確認します
+title: "[ピッチ修正] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このIssueはチーム内の提案受付です。Issueは公開リポジトリ上で誰でも閲覧できます。機密情報、個人情報、非公開資料を貼らないでください。GitHubへのログインが必要です。
+
+        Figmaを先に更新し、チームの明示承認を得てからReactへ反映します。画像はIssue作成後のコメント欄に添付できます。Figmaフレームへのリンクも記載してください。
+  - type: input
+    id: version
+    attributes:
+      label: 対象の公開版・ページURL
+      description: 最新版または固定版のURLを貼ってください。Figma案の場合はその旨も記載してください。
+      placeholder: https://doc-gif.github.io/jtcc-business-pitch/#slide-2
+    validations:
+      required: true
+  - type: input
+    id: figma
+    attributes:
+      label: 対象FigmaフレームURL
+      description: 変更箇所が分かるフレームURLを記載してください。未作成なら「未作成」で構いません。
+      placeholder: https://www.figma.com/design/yeDF1BwhrxpXI57Daainle/...
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: 提案の種類
+      options:
+        - デザイン・見せ方
+        - 文言・ストーリー
+        - 事業仮説・運用
+        - 数値・出典
+        - 誤りの報告
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: 変えたい内容
+      description: 現状のどこに困り、どう変えたいかを書いてください。1件のIssueでは1つの主な提案に絞ると確認しやすくなります。
+      placeholder: |
+        現状:
+        変えたいこと:
+        期待する結果:
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: 理由・根拠・確認したいこと
+      description: 観察、数値の出典、顧客の声、仮説を区別して記載してください。未確認ならそのまま記載してください。
+      placeholder: URL、対象者・時期、引用箇所など（任意）
+    validations:
+      required: false
+  - type: dropdown
+    id: decision
+    attributes:
+      label: チームに求める判断
+      options:
+        - まずFigma案を見てほしい
+        - 事業判断・追加調査を相談したい
+        - React実装の承認を相談したい
+        - 情報共有のみ
+    validations:
+      required: true

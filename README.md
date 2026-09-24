@@ -8,6 +8,16 @@ GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビ�
 
 公開URL: https://doc-gif.github.io/jtcc-business-pitch/
 
+## チーム向け修正受付
+
+- 受付ページ: https://doc-gif.github.io/jtcc-business-pitch/?view=revision-intake
+- 提案フォーム: https://github.com/doc-gif/jtcc-business-pitch/issues/new?template=revision-request.yml
+- 未完了の提案: https://github.com/doc-gif/jtcc-business-pitch/issues?q=is%3Aissue+is%3Aopen
+- Issueは公開リポジトリに掲載され、投稿にはGitHubログインが必要です。個人情報・機密情報を含めないでください。
+- Codexが常時監視する設定はありません。オペレーターに「受付を処理して」と依頼すると、運用手順と事業原則を確認して未完了Issueを整理します。
+- ピッチ変更は必ず既存Figmaファイル内のレビュー案が先です。チームの明示承認後に限り、承認範囲をReactへ実装・公開します。承認前はピッチ本編を変更しません。
+- [事業原則](.github/BUSINESS_PRINCIPLES.md)、[根拠・優先判断一覧](.github/DECISIONS_AND_EVIDENCE.md)、[AIの受付処理手順](.github/REVISION_INTAKE.md)。
+
 ## 公開バージョン
 
 - 最新版: https://doc-gif.github.io/jtcc-business-pitch/ 。`main` のpushごとに更新されます。

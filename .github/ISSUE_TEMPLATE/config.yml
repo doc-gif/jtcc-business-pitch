@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 受付の進め方・事業原則
+    url: https://github.com/doc-gif/jtcc-business-pitch/blob/main/.github/REVISION_INTAKE.md
+    about: 提案の処理手順、状態、承認ゲートを確認できます
