@@ -4,7 +4,7 @@
 
 ## 公開状況
 
-GitHub Actionsによるデプロイ設定は済んでいます。初回デプロイ前にリポジトリ所有者が **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に設定してください。設定後は `main` へのpushごとにビルドして自動デプロイします。静的サイト用のため別のホスティング契約や購入は不要です。
+GitHub PagesのSourceはGitHub Actionsに設定済みです。初回デプロイの実行状況を確認中です。成功後は `main` へのpushごとにビルドして自動デプロイします。静的サイト用のため別のホスティング契約や購入は不要です。
 
 初回公開後のURL: https://doc-gif.github.io/jtcc-business-pitch/
 
