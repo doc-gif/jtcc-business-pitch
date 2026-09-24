@@ -13,6 +13,11 @@ GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビ�
 - 最新版: https://doc-gif.github.io/jtcc-business-pitch/ 。`main` のpushごとに更新されます。
 - 保存版: `https://doc-gif.github.io/jtcc-business-pitch/versions/<tag>/` 。リリースタグごとに別ディレクトリで公開され、後のmain更新や他のタグ公開では上書きされません。
 - 最初の保存版 `v1.0.0` は、このバージョン管理を加える直前のピッチ内容を保存します。版を選べる表示を追加するため、スナップショットにも現在の版を示す選択メニューが含まれます。
+- `v1.0.0` は commit `877241c26b8f18310abc81388477d2e9fecc6c3d` を指します。タグビルドは `pages-store` に保存済みですが、初回公開にはGitHub Pages環境へのタグ許可設定が必要です。
+
+### 初回のみ: タグのPages公開を許可する
+
+リポジトリの **Settings → Environments → github-pages → Deployment branches and tags** を開き、既存の `main` ルールを残して、タグパターン `v*` を追加します。ワークフローはさらに `vMAJOR.MINOR.PATCH` 形式だけを受け付けます。この設定がない間、タグのビルドと `pages-store` への保存は成功しますが、GitHubの環境保護により `deploy` が拒否され、保存版URLは公開されません。設定後は、保存済み `v1.0.0` を含む全ビルドを公開するため、`main` に空コミットをpushしてください。以後のタグrunは `build`、`persist`、`deploy` の成功で確認できます。
 
 ### 最新版を更新する
 
@@ -20,7 +25,7 @@ GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビ�
 
 ### 保存版を追加する
 
-保存したいcommitに `vMAJOR.MINOR.PATCH` 形式の注釈付きタグを作り、そのタグをpushします。
+保存したいcommitに `vMAJOR.MINOR.PATCH` 形式の注釈付きタグを作り、そのタグをpushします。タグ名は公開先のパスに使われるため、作成済みのタグ名を再利用したり移動したりしません。
 
 ```sh
 git tag -a v1.1.0 -m "Release v1.1.0" <commit>
@@ -31,7 +36,7 @@ git push origin v1.1.0
 
 ### 公開完了を確認する
 
-GitHubの **Actions → Build and deploy versioned site to GitHub Pages** で、該当するmainまたはtagのrunを開きます。`build`、`persist`、`deploy` がすべて成功し、`deploy` にPages URLが表示されたら公開完了です。`pages-store` ブランチには最新版とタグ版のビルド成果物を保管し、各デプロイで全版をまとめて公開します。タグ公開がmainの最新版を巻き戻すことはありません。
+GitHubの **Actions → Build and deploy versioned site to GitHub Pages** で、該当するmainまたはtagのrunを開きます。`build`、`persist`、`deploy` がすべて成功し、`deploy` にPages URLが表示されたら公開完了です。公開後は最新版URLと固定版URLの両方を開き、表示と `#slide-2` などのスライドURLを確認します。`pages-store` ブランチには最新版とタグ版のビルド成果物を保管し、各デプロイで全版をまとめて公開します。タグ公開がmainの最新版を巻き戻すことはありません。
 
 ## 画面
 
