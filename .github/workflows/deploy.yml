@@ -77,6 +77,7 @@ jobs:
           for attempt in {1..8}; do
             git -C pages-store fetch origin pages-store
             git -C pages-store reset --hard FETCH_HEAD
+            mkdir -p pages-store/latest pages-store/versions
             if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
               current_main="$(git ls-remote origin refs/heads/main | cut -f1)"
               if [[ "$current_main" != "$GITHUB_SHA" ]]; then
