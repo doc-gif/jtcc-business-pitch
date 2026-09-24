@@ -4,9 +4,9 @@
 
 ## 公開状況
 
-GitHub PagesのSourceはGitHub Actionsに設定済みです。初回デプロイの実行状況を確認中です。成功後は `main` へのpushごとにビルドして自動デプロイします。静的サイト用のため別のホスティング契約や購入は不要です。
+GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビルドし、自動デプロイします。静的サイト用のため別のホスティング契約や購入は不要です。
 
-初回公開後のURL: https://doc-gif.github.io/jtcc-business-pitch/
+公開URL: https://doc-gif.github.io/jtcc-business-pitch/
 
 ## 画面
 
