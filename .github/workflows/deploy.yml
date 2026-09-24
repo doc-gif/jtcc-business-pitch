@@ -135,9 +135,57 @@ jobs:
             cp -a pages-store/versions/. public/versions/
           fi
           node -e 'const fs=require("node:fs"); const path=require("node:path"); const versions=fs.existsSync("pages-store/versions")?fs.readdirSync("pages-store/versions").filter(name=>/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(name)&&fs.existsSync(path.join("pages-store/versions",name,"index.html"))).sort((a,b)=>b.localeCompare(a,undefined,{numeric:true})):[]; fs.writeFileSync("public/versions.json",JSON.stringify(versions,null,2)+"\n");'
+      - name: Select unique Pages build version
+        id: pages-version
+        run: echo "value=$(git -C pages-store rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: public
       - name: Deploy complete site to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/github-script@v8
+        env:
+          PAGES_BUILD_VERSION: ${{ steps.pages-version.outputs.value }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo,
+              run_id: context.runId,
+            });
+            const artifacts = data.artifacts.filter((artifact) => artifact.name === "github-pages" && !artifact.expired);
+            if (artifacts.length !== 1) {
+              throw new Error(`Expected one github-pages artifact, found ${artifacts.length}.`);
+            }
+
+            const oidcToken = await core.getIDToken();
+            const created = await github.request("POST /repos/{owner}/{repo}/pages/deployments", {
+              owner,
+              repo,
+              artifact_id: artifacts[0].id,
+              pages_build_version: process.env.PAGES_BUILD_VERSION,
+              oidc_token: oidcToken,
+            });
+            core.setOutput("page_url", created.data.page_url);
+            core.info(`Created Pages deployment ${created.data.id} from archive commit ${process.env.PAGES_BUILD_VERSION}.`);
+
+            const deadline = Date.now() + 600_000;
+            while (Date.now() < deadline) {
+              const status = await github.request("GET /repos/{owner}/{repo}/pages/deployments/{deploymentId}", {
+                owner,
+                repo,
+                deploymentId: created.data.id,
+              });
+              if (status.data.status === "built") {
+                core.info("GitHub Pages deployment completed.");
+                break;
+              }
+              if (["errored", "cancelled"].includes(status.data.status)) {
+                throw new Error(`GitHub Pages deployment ended with status ${status.data.status}.`);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 5_000));
+            }
+            if (Date.now() >= deadline) {
+              throw new Error("Timed out waiting for GitHub Pages deployment status.");
+            }
