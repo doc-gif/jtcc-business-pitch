@@ -177,11 +177,16 @@ jobs:
                 repo,
                 deploymentId: created.data.id,
               });
-              if (status.data.status === "built") {
+              if (status.data.status === "succeed") {
                 core.info("GitHub Pages deployment completed.");
                 break;
               }
-              if (["errored", "cancelled"].includes(status.data.status)) {
+              if ([
+                "deployment_failed",
+                "deployment_content_failed",
+                "deployment_cancelled",
+                "deployment_lost",
+              ].includes(status.data.status)) {
                 throw new Error(`GitHub Pages deployment ended with status ${status.data.status}.`);
               }
               await new Promise((resolve) => setTimeout(resolve, 5_000));
