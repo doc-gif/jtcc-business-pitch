@@ -77,7 +77,8 @@ jobs:
           for attempt in {1..8}; do
             git -C pages-store fetch origin pages-store
             git -C pages-store reset --hard FETCH_HEAD
-            mkdir -p pages-store/latest pages-store/versions
+            mkdir -p pages-store/latest pages-store/versions pages-store/version-sources
+            touch pages-store/version-sources/.gitkeep
             if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
               current_main="$(git ls-remote origin refs/heads/main | cut -f1)"
               if [[ "$current_main" != "$GITHUB_SHA" ]]; then
@@ -90,15 +91,26 @@ jobs:
               version_label="latest"
             else
               version_dir="pages-store/versions/$GITHUB_REF_NAME"
+              source_record="pages-store/version-sources/$GITHUB_REF_NAME.sha"
               if [[ -e "$version_dir/index.html" ]]; then
-                echo "Version $GITHUB_REF_NAME already exists; refusing to overwrite it." >&2
+                if [[ -f "$source_record" && "$(cat "$source_record")" == "$GITHUB_SHA" ]]; then
+                  if diff -qr dist "$version_dir"; then
+                    echo "Version $GITHUB_REF_NAME is already stored from this commit; leaving it unchanged."
+                    exit 0
+                  fi
+                  echo "Version $GITHUB_REF_NAME already exists from this commit but its stored files differ; refusing to overwrite it." >&2
+                  exit 1
+                fi
+                echo "Version $GITHUB_REF_NAME already exists for a different or unknown commit; refusing to overwrite it." >&2
                 exit 1
               fi
               mkdir -p "$version_dir"
               cp -a dist/. "$version_dir/"
+              mkdir -p "$(dirname "$source_record")"
+              printf '%s\n' "$GITHUB_SHA" > "$source_record"
               version_label="$GITHUB_REF_NAME"
             fi
-            git -C pages-store add latest versions
+            git -C pages-store add latest versions version-sources
             if git -C pages-store diff --cached --quiet; then
               echo "No archive changes to save."
               exit 0
