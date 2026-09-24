@@ -1,22 +1,20 @@
-name: Build and deploy to GitHub Pages
+name: Build and deploy versioned site to GitHub Pages
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_SITE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
@@ -27,21 +25,118 @@ jobs:
           node-version: 24
           cache: pnpm
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Validate release tag
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Release tags must use vMAJOR.MINOR.PATCH (for example v1.0.0)." >&2
+            exit 1
+          fi
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build --mode github-pages
-      - uses: actions/upload-pages-artifact@v4
+      - name: Build latest site
+        if: github.ref_type == 'branch'
+        run: pnpm build --mode github-pages --base /jtcc-business-pitch/
+      - name: Build tagged site
+        if: github.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: pnpm build --mode github-pages --base "/jtcc-business-pitch/versions/${RELEASE_TAG}/"
+      - uses: actions/upload-artifact@v4
         with:
+          name: site-build
           path: dist
+          retention-days: 1
+
+  persist:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+      - uses: actions/checkout@v6
+        with:
+          ref: pages-store
+          path: pages-store
+          persist-credentials: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: dist
+      - name: Store build without replacing existing versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" == "tag" && ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Unsafe release tag; refusing to create a site path." >&2
+            exit 1
+          fi
+          git -C pages-store config user.name "github-actions[bot]"
+          git -C pages-store config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in {1..8}; do
+            git -C pages-store fetch origin pages-store
+            git -C pages-store reset --hard FETCH_HEAD
+            if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
+              current_main="$(git ls-remote origin refs/heads/main | cut -f1)"
+              if [[ "$current_main" != "$GITHUB_SHA" ]]; then
+                echo "Skipping stale main build $GITHUB_SHA; main is now $current_main."
+                exit 0
+              fi
+              rm -rf pages-store/latest
+              mkdir -p pages-store/latest
+              cp -a dist/. pages-store/latest/
+              version_label="latest"
+            else
+              version_dir="pages-store/versions/$GITHUB_REF_NAME"
+              if [[ -e "$version_dir/index.html" ]]; then
+                echo "Version $GITHUB_REF_NAME already exists; refusing to overwrite it." >&2
+                exit 1
+              fi
+              mkdir -p "$version_dir"
+              cp -a dist/. "$version_dir/"
+              version_label="$GITHUB_REF_NAME"
+            fi
+            git -C pages-store add latest versions
+            if git -C pages-store diff --cached --quiet; then
+              echo "No archive changes to save."
+              exit 0
+            fi
+            git -C pages-store -c core.autocrlf=false commit -m "Store $version_label site build"
+            if git -C pages-store push origin HEAD:refs/heads/pages-store; then
+              exit 0
+            fi
+            echo "Archive branch changed during save; retrying from its newest state."
+            sleep 2
+          done
+          echo "Could not save the build after several retries." >&2
+          exit 1
 
   deploy:
+    needs: persist
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-deployment
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - uses: actions/checkout@v6
+        with:
+          ref: pages-store
+          path: pages-store
+      - name: Assemble complete site from stored builds
+        run: |
+          mkdir -p public/versions
+          cp -a pages-store/latest/. public/
+          if [ -d pages-store/versions ]; then
+            cp -a pages-store/versions/. public/versions/
+          fi
+          node -e 'const fs=require("node:fs"); const path=require("node:path"); const versions=fs.existsSync("pages-store/versions")?fs.readdirSync("pages-store/versions").filter(name=>/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(name)&&fs.existsSync(path.join("pages-store/versions",name,"index.html"))).sort((a,b)=>b.localeCompare(a,undefined,{numeric:true})):[]; fs.writeFileSync("public/versions.json",JSON.stringify(versions,null,2)+"\n");'
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+      - name: Deploy complete site to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

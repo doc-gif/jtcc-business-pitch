@@ -8,6 +8,31 @@ GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビ�
 
 公開URL: https://doc-gif.github.io/jtcc-business-pitch/
 
+## 公開バージョン
+
+- 最新版: https://doc-gif.github.io/jtcc-business-pitch/ 。`main` のpushごとに更新されます。
+- 保存版: `https://doc-gif.github.io/jtcc-business-pitch/versions/<tag>/` 。リリースタグごとに別ディレクトリで公開され、後のmain更新や他のタグ公開では上書きされません。
+- 最初の保存版 `v1.0.0` は、このバージョン管理を加える直前のピッチ内容を保存します。版を選べる表示を追加するため、スナップショットにも現在の版を示す選択メニューが含まれます。
+
+### 最新版を更新する
+
+通常どおり `main` にcommitをpushします。成功したActions runの `deploy` が完了すると、ルートURLが新しい最新版になります。保存済みの `/versions/` は維持されます。mainの古いrunが遅れて完了した場合は、最新のmain commitと一致しないビルドを保存しません。
+
+### 保存版を追加する
+
+保存したいcommitに `vMAJOR.MINOR.PATCH` 形式の注釈付きタグを作り、そのタグをpushします。
+
+```sh
+git tag -a v1.1.0 -m "Release v1.1.0" <commit>
+git push origin v1.1.0
+```
+
+タグが指すcommitのサイトをビルドし、`/versions/v1.1.0/` に保存します。スライドの `#slide-1`〜`#slide-7` も各保存版URLで使えます。タグ名の形式が異なる場合、同じ保存パスがすでにある場合、ビルドに失敗した場合は既存保存版を変更せずActionsが失敗します。タグの削除だけでは公開済みページは削除されません。公開を取り消す場合は、管理用 `pages-store` ブランチから該当の `versions/<tag>` ディレクトリを削除し、その後正常にデプロイする必要があります。
+
+### 公開完了を確認する
+
+GitHubの **Actions → Build and deploy versioned site to GitHub Pages** で、該当するmainまたはtagのrunを開きます。`build`、`persist`、`deploy` がすべて成功し、`deploy` にPages URLが表示されたら公開完了です。`pages-store` ブランチには最新版とタグ版のビルド成果物を保管し、各デプロイで全版をまとめて公開します。タグ公開がmainの最新版を巻き戻すことはありません。
+
 ## 画面
 
 - 7枚の発表スライド。矢印キーで移動し、URLの `#slide-1` から `#slide-7` で直接開けます。
