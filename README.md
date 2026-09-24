@@ -13,11 +13,11 @@ GitHub Pagesで公開中です。`main` へのpushごとにGitHub Actionsでビ�
 - 最新版: https://doc-gif.github.io/jtcc-business-pitch/ 。`main` のpushごとに更新されます。
 - 保存版: `https://doc-gif.github.io/jtcc-business-pitch/versions/<tag>/` 。リリースタグごとに別ディレクトリで公開され、後のmain更新や他のタグ公開では上書きされません。
 - 最初の保存版 `v1.0.0` は、このバージョン管理を加える直前のピッチ内容を保存します。版を選べる表示を追加するため、スナップショットにも現在の版を示す選択メニューが含まれます。
-- `v1.0.0` は commit `877241c26b8f18310abc81388477d2e9fecc6c3d` を指します。タグビルドは `pages-store` に保存済みですが、初回公開にはGitHub Pages環境へのタグ許可設定が必要です。
+- `v1.0.0` は commit `877241c26b8f18310abc81388477d2e9fecc6c3d` を指し、固定URLで公開済みです。タグビルドは `pages-store` に保存した後、成功した `main` のデプロイにも含まれます。
 
 ### 初回のみ: タグのPages公開を許可する
 
-リポジトリの **Settings → Environments → github-pages → Deployment branches and tags** を開き、既存の `main` ルールを残して、タグパターン `v*` を追加します。ワークフローはさらに `vMAJOR.MINOR.PATCH` 形式だけを受け付けます。この設定がない間、タグのビルドと `pages-store` への保存は成功しますが、GitHubの環境保護により `deploy` が拒否され、保存版URLは公開されません。設定後は、保存済み `v1.0.0` を含む全ビルドを公開するため、`main` に空コミットをpushしてください。以後のタグrunは `build`、`persist`、`deploy` の成功で確認できます。
+リポジトリの **Settings → Environments → github-pages → Deployment branches and tags** で、既存の `main` ルールを残し、タグパターン `v*` を追加します。この設定は完了済みです。ワークフローはさらに `vMAJOR.MINOR.PATCH` 形式だけを受け付けます。設定前にタグrunの `deploy` が環境保護で拒否された場合も、タグ版の成果物は `pages-store` に残ります。その後の成功した `main` デプロイで保存済みの全バージョンが公開されます。
 
 ### 最新版を更新する
 
